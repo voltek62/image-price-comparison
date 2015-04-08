@@ -38,7 +38,7 @@ shinyUI(
        column(4, 
               selectInput("country", 
                           label = h3("Country"), 
-                          c("com", "fr"))
+                          c("com","fr","es","ru"))
        )        
      ),
 
