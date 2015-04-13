@@ -4,19 +4,22 @@
 http://images.google.com/searchbyimage?hl=en&image_url=http://s3.static69.com/m/image-offre/c/e/a/f/ceaf8b49bb662bcb8fbf15858feecdea-500x500.jpg
 
 - Cran R : extract rich snippet
-<div data-price='default' id="price_289004" data-id='289004' class="price" itemprop="price">
-  			$134.00
-</div>
 
-<div class="price_block_container" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-</div>
+POST : 
+
+https://structured-data-testing-tool.developers.google.com/sdtt/u/0/web/validate
+POST
+URL : url:http://rozetka.com.ua/nikon_coolpix_s3600_red/p420844/
+"properties":[{"pred":"price","value":"2 399","errors":[],"begin":548843,"end":548923},{"pred":"priceCurrency","value":"UAH","errors":[]
+
+
 
 - Identifier les pays
 ??
 
 - comment stocker une image dans dataframe
 
-- comment comparer ressemblance deux images
+
 
 - Changer les devises
 http://www.freecurrencyconverterapi.com/

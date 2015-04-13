@@ -10,6 +10,7 @@ library(httr)
 library(RCurl)
 library(XML)
 library(stringr)
+library(jsonlite)
 
 # Load the ggplot2 package which provides
 # the 'mpg' dataset.
@@ -46,8 +47,74 @@ shinyServer(function(input, output) {
         
     u <- paste(links[[1]],"&gws_rd=ssl",sep="")
     u
+       
     
   })
+  
+  #path <- "http://www.diffbot.com/api/analyze?token=ffda2cb09caa868da94c844601bd8d0c&url=http://www.cromaretail.com/Nikon-COOLPIX-S3600-201-MP-Digital-Camera-%28Red%29-pc-21394-132.aspx"
+  #result <- fromJSON( path )
+  
+  
+  analyseDiffBot <- function(key,url) {
+    
+    #curlEscape(
+    path <- paste("http://www.diffbot.com/api/analyze?token=",key,"&url=",url,sep = "")    
+    
+    print(path)
+    
+    #content <- getURL(path)
+    result <- fromJSON(path)
+    
+    if(length(result$type)>0) {
+      #print(result)
+      
+      if (result$type=="product")
+        if (length(result$products)>0) {  
+          
+          #print(result$products)        
+          
+          if (length(result$products$offerPriceDetails)>0)
+          {  
+            
+            print(result$products$offerPriceDetails$amount)
+            
+            return(c("",result$human_language,result$type,result$products$offerPriceDetails$amount,result$products$offerPriceDetails$symbol)) 
+            
+          }
+          else
+            return(c('not product page','','','',''))
+        }
+        else
+        {
+          return(c('not products','','','',''))
+        }
+    }
+    else
+       
+      return(c("no result","-","-","-","-"))
+    
+    #if (length(result$ruleGroups)>0){
+    #  return(result$ruleGroups$USABILITY$score)
+    #}
+    
+
+    
+  }
+  
+  analyseRichSnippet <- function(url) {
+     
+    content <- postForm("https://structured-data-testing-tool.developers.google.com/sdtt/u/0/web/validate", "url" = "http://rozetka.com.ua/nikon_coolpix_s3600_red/p420844/" ) 
+    
+    result <- fromJSON( content )
+    
+    
+  }
+  
+  
+  importVar <- function(test) {
+    
+    return(c("msg","Yes","toto",3))
+  }
   
   # Filter data based on selections
   output$table <- renderDataTable({
@@ -59,6 +126,8 @@ shinyServer(function(input, output) {
 #       data <- data[data$trans == input$trans,]
 #     }
 #    data
+    
+  
 
     if (input$url != "http://s3.static69.com/m/image-offre/c/e/a/f/ceaf8b49bb662bcb8fbf15858feecdea-500x500.jpg"){
       url_src = input$url
@@ -91,15 +160,51 @@ shinyServer(function(input, output) {
     #get 20 premiers différents
     
     #analyser chaque url
-    analyses <- c()
+    message <- c()
+    language <- c()
+    type <- c()
+    price <- c()
+    symbol <- c()    
+
     for (i in 1:length(links)) {
-      analyses[i] <- links_src[i]
+      #result <- importVar(links_src[i])
+      result <- analyseDiffBot('ffda2cb09caa868da94c844601bd8d0c',links_src[i]);
+      
+      print(result)
+      
+      if(length(result[1])>0)
+        message[i]  <- result[1]
+      else 
+        message[i]  <- ""
+      
+      if(length(result[2])>0)      
+        language[i] <- result[2]
+      else 
+        language[i]  <- ""      
+      
+      if(length(result[3])>0)      
+        type[i]     <- result[3]
+      else 
+        type[i]  <- ""
+      
+      if(length(result[4])>0)      
+        price[i]    <- result[4]
+      else 
+        price[i]  <- ""
+      
+      if(length(result[5])>0)      
+        symbol[i]    <- result[5]
+      else 
+        symbol[i]  <- ""      
+        
     }
+
+    print(result)
     
-    df <- data.frame(titles,links,analyses)       
+    df <- data.frame(titles,links,message,language,type,price,symbol)       
  
     df
     
-  })  
+  }, options = list(lengthMenu = c(5, 30, 50), pageLength = 10) )  
   
 })
