@@ -18,6 +18,8 @@ library(ggplot2)
 
 shinyServer(function(input, output) {
   
+  ##
+  
   output$image <- renderUI({
     
     if (input$url != "http://s3.static69.com/m/image-offre/c/e/a/f/ceaf8b49bb662bcb8fbf15858feecdea-500x500.jpg"){
@@ -47,9 +49,85 @@ shinyServer(function(input, output) {
         
     u <- paste(links[[1]],"&gws_rd=ssl",sep="")
     u
-       
-    
+        
   })
+  
+  
+  analyseUrl <- function(u) {
+    
+    useragent <- "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+    html <- getURL(u,ssl.verifypeer = FALSE, httpheader = c('User-Agent' = useragent), encoding='UTF8')
+    #HTML(doc,file="list.html")
+    doc <- htmlParse(html)
+    # extraction
+    # on remplit le dataframe
+    attrs <- xpathApply(doc, "//h3[@class='r']/a/@href")  
+    attrs2 <- xpathApply(doc, "//h3[@class='r']/a")   
+    #attrs3 <- xpathApply(doc, "//div[@class='s']/div[1]/div[@class='th _lyb']/a/img/@src")
+    # get options
+    attrs4 <- xpathApply(doc, "//div[@class='f slp']")
+    attrs5 <- xpathApply(doc, "//div[@class='f kv _SWb']/a[@class='fl']/@href")
+    
+    free(doc)
+    links <- sapply(attrs, function(x) paste('<a target="_blank" href="',x[[1]],'">',x[[1]],'</a>',sep=""))
+    links_src <- sapply(attrs, function(x) x[[1]]) 
+    titles <- sapply(attrs2, function(x) xmlValue(x[[1]]))
+    #images <- sapply(attrs3, function(x) x[[1]])
+    messages <- sapply(attrs4, function(x) xmlValue(x[[1]])) 
+    langs <- sapply(attrs5, function(x) x[[1]]) 
+    
+    #analyser chaque url
+#     message <- c()
+#     language <- c()
+#     type <- c()
+#     price <- c()
+#     symbol <- c()    
+#     
+#     for (i in 1:length(links)) {
+#       result <- importVar(links_src[i])
+#       
+#       #si key diffbot defined
+#       #result <- analyseDiffBot('ffda2cb09caa868da94c844601bd8d0c',links_src[i]);
+#       
+#       print(result)
+#       
+#       if(length(result[1])>0)
+#         message[i]  <- result[1]
+#       else 
+#         message[i]  <- ""
+#       
+#       if(length(result[2])>0)      
+#         language[i] <- result[2]
+#       else 
+#         language[i]  <- ""      
+#       
+#       if(length(result[3])>0)      
+#         type[i]     <- result[3]
+#       else 
+#         type[i]  <- ""
+#       
+#       if(length(result[4])>0)      
+#         price[i]    <- result[4]
+#       else 
+#         price[i]  <- ""
+#       
+#       if(length(result[5])>0)      
+#         symbol[i]    <- result[5]
+#       else 
+#         symbol[i]  <- ""      
+#       
+#     }
+    
+
+    #df <- data.frame(titles,links,message,language,type,price,symbol)  
+
+    df <- data.frame(titles,links,messages)  
+
+
+    return(df)
+  }
+  
+  
   
   #path <- "http://www.diffbot.com/api/analyze?token=ffda2cb09caa868da94c844601bd8d0c&url=http://www.cromaretail.com/Nikon-COOLPIX-S3600-201-MP-Digital-Camera-%28Red%29-pc-21394-132.aspx"
   #result <- fromJSON( path )
@@ -113,7 +191,7 @@ shinyServer(function(input, output) {
   
   importVar <- function(test) {
     
-    return(c("msg","Yes","toto",3))
+    return(c("test"," "," "," "," "))
   }
   
   # Filter data based on selections
@@ -142,67 +220,33 @@ shinyServer(function(input, output) {
     #HTML(doc,file="test.html")
     links <- xpathSApply(doc, "//a/@href")
     
-    u <- paste(links[[1]],"&gws_rd=ssl",sep="")
+    u <- paste(links[[1]],"&gws_rd=ssl",sep="")   
+    df <- analyseUrl(u)
+    
     useragent <- "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
     html <- getURL(u,ssl.verifypeer = FALSE, httpheader = c('User-Agent' = useragent), encoding='UTF8')
-    #HTML(doc,file="list.html")
     doc <- htmlParse(html)
-    # extraction
-    # on remplit le dataframe
-    attrs <- xpathApply(doc, "//h3[@class='r']/a/@href")  
-    attrs2 <- xpathApply(doc, "//h3[@class='r']/a")   
-    #attrs3 <- xpathApply(doc, "//div[@class='s']/div[1]/div[@class='th _lyb']/a/img/@src")
-    free(doc)
-    links <- sapply(attrs, function(x) paste('<a target="_blank" href="',x[[1]],'">',x[[1]],'</a>',sep=""))
-    links_src <- sapply(attrs, function(x) x[[1]]) 
-    titles <- sapply(attrs2, function(x) xmlValue(x[[1]]))
-    #images <- sapply(attrs3, function(x) x[[1]])
-    #get 20 premiers différents
     
-    #analyser chaque url
-    message <- c()
-    language <- c()
-    type <- c()
-    price <- c()
-    symbol <- c()    
-
-    for (i in 1:length(links)) {
-      #result <- importVar(links_src[i])
-      result <- analyseDiffBot('ffda2cb09caa868da94c844601bd8d0c',links_src[i]);
+    # we look for other url
+    links_other <- xpathSApply(doc, "//tr/td/a[@class='fl']/@href")    
+    free(doc)
+    
+    #print('links_other',links_other)
+    for (i in 1:length(links_other)) {
+      u <- paste("http://images.google.com",links_other[[i]],dep="")
       
-      print(result)
+      u <- str_replace_all(u, " ", "")
       
-      if(length(result[1])>0)
-        message[i]  <- result[1]
-      else 
-        message[i]  <- ""
+      #print('u',u)
       
-      if(length(result[2])>0)      
-        language[i] <- result[2]
-      else 
-        language[i]  <- ""      
       
-      if(length(result[3])>0)      
-        type[i]     <- result[3]
-      else 
-        type[i]  <- ""
+      df <- rbind(analyseUrl(u), df)
       
-      if(length(result[4])>0)      
-        price[i]    <- result[4]
-      else 
-        price[i]  <- ""
       
-      if(length(result[5])>0)      
-        symbol[i]    <- result[5]
-      else 
-        symbol[i]  <- ""      
-        
     }
 
-    print(result)
-    
-    df <- data.frame(titles,links,message,language,type,price,symbol)       
- 
+    # eliminate doublon
+     
     df
     
   }, options = list(lengthMenu = c(5, 30, 50), pageLength = 10) )  

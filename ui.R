@@ -29,13 +29,16 @@ shinyUI(
   fluidPage(
     titlePanel("Image Price Comparison"),
     
-    # Create a new Row in the UI for selectInputs
      fluidRow(
-       column(8, 
+       column(3, 
+              textInput("key", label = h3("API Key Diff Bot"), value = "ffda2cb09caa868da94c844601bd8d0c"),
+              tags$style(type='text/css', "#key { width: 100%; }")
+       ),
+       column(7, 
           textInput("url", label = h3("URL Image"), value = "http://s3.static69.com/m/image-offre/c/e/a/f/ceaf8b49bb662bcb8fbf15858feecdea-500x500.jpg"),
           tags$style(type='text/css', "#url { width: 100%; }")
        ),
-       column(4, 
+       column(2, 
               selectInput("country", 
                           label = h3("Country"), 
                           c("com","fr","es","ru"))
